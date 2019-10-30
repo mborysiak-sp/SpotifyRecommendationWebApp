@@ -7,6 +7,10 @@ using Microsoft.AspNetCore.Http.Extensions;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using SpotifyMVC.Models;
+using System.Net.Http;
+using System.Net.Http.Headers;
+using Newtonsoft.Json.Linq;
+using Newtonsoft.Json;
 
 namespace SpotifyMVC.Controllers
 {
@@ -38,16 +42,27 @@ namespace SpotifyMVC.Controllers
             return View();
         }
 
-        public IActionResult Test(){
-            return View();
+        public TokensResponse GetTokens(string code){
+            string responseString;
+            using (HttpClient client = new HttpClient())
+            {
+                var authorization = Convert.ToBase64String(System.Text.ASCIIEncoding.ASCII.GetBytes(sAuth.clientID + ":" + sAuth.clientSecret));
+                client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Basic", authorization);
+                var parameters = new FormUrlEncodedContent(new Dictionary<string, string>{
+                        {"code", code},
+                        {"redirect_uri", sAuth.redirectURL},
+                        {"grant_type", "authorization_code"},
+                    });
+                var responseContent = client.PostAsync("https://accounts.spotify.com/api/token", parameters).Result.Content;
+                responseString = responseContent.ReadAsStringAsync().Result;
+            }
+            return JsonConvert.DeserializeObject<TokensResponse>(responseString);
         }
-
         public IActionResult Callback(string code)
         {
-            @ViewData["code"] = code;
+            @ViewData["access_token"] = GetTokens(code).access_token;
             return View();
         }
-
         [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
         public IActionResult Error()
         {

@@ -47,3 +47,5 @@ obj/Debug/netcoreapp3.0/staticwebassets/C# HTML JS - Polecanko.StaticWebAssets.x
 obj/project.assets.json
 .vscode/launch.json
 .vscode/tasks.json
+Install-Package
+bin/Debug/netcoreapp3.0/Newtonsoft.Json.dll

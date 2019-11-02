@@ -1,7 +1,7 @@
 ﻿<div class='v-align'>
     <div class='hero-btn'>
         <button class='btn'>
-            Authenticate
+            <span class="font-heading font-big font-white">Authenticate</span>
         </button>
         <span class='particles-circle'></span>
         <span class='particles-circle'></span>
@@ -53,11 +53,11 @@
                     .parent()
                     .stop()
                     .addClass("active");
-                setTimeout(function (){
-                var params = '@ViewData["params"]';
-                params = params.replace(/&amp;/g,"&");
-                window.location.href = "https://accounts.spotify.com/authorize/".concat(params);
-                }, 1000);
+                setTimeout(function () {
+                    var params = '@ViewData["params"]';
+                    params = params.replace(/&amp;/g, "&");
+                    window.location.href = "https://accounts.spotify.com/authorize/".concat(params);
+                }, 1500);
                 setTimeout(function () {
                     $(".hero-btn")
                         .parent()

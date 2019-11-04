@@ -14,15 +14,10 @@ using Newtonsoft.Json;
 
 namespace SpotifyMVC.Controllers
 {
-    class SpotifyAuthentication
-    {
-        public string clientID = "826fdbe3b212461793a5024c3d89f96b";
-        public string clientSecret = "b487b822b2704b4f81a4dcf2d4882412";
-        public string redirectURL = "https://localhost:5001/spotify/callback";
-    }
+
     public class SpotifyController : Controller
     {
-        SpotifyAuthentication sAuth = new SpotifyAuthentication();
+        SpotifyAuth sAuth = new SpotifyAuth();
 
         private readonly ILogger<SpotifyController> _logger;
 
@@ -31,7 +26,7 @@ namespace SpotifyMVC.Controllers
             _logger = logger;
         }
 
-        public IActionResult Index()
+        public IActionResult Auth()
         {
             var qb = new QueryBuilder();
             qb.Add("client_id", sAuth.clientID);
@@ -61,6 +56,10 @@ namespace SpotifyMVC.Controllers
         public IActionResult Callback(string code)
         {
             @ViewData["access_token"] = GetTokens(code).access_token;
+            return View();
+        }
+
+        public IActionResult Dashboard(){
             return View();
         }
         [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]

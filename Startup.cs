@@ -50,7 +50,7 @@ namespace SpotifyMVC
             {
                 endpoints.MapControllerRoute(
                     name: "default",
-                    pattern: "{controller}/{action=Index}/{id?}");
+                    pattern: "{controller=Spotify}/{action=Auth}/{id?}");
             });
         }
     }

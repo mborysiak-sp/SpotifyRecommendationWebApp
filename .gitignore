@@ -49,3 +49,5 @@ obj/project.assets.json
 .vscode/tasks.json
 Install-Package
 bin/Debug/netcoreapp3.0/Newtonsoft.Json.dll
+obj/Debug/netcoreapp3.0/Razor/Views/Spotify/Auth.cshtml.g.cs
+obj/Debug/netcoreapp3.0/Razor/Views/Spotify/Dashboard.cshtml.g.cs

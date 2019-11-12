@@ -2,14 +2,12 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
-using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http.Extensions;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using SpotifyMVC.Models;
 using System.Net.Http;
 using System.Net.Http.Headers;
-using Newtonsoft.Json.Linq;
 using Newtonsoft.Json;
 
 namespace SpotifyMVC.Controllers
@@ -17,6 +15,11 @@ namespace SpotifyMVC.Controllers
 
     public class SpotifyController : Controller
     {
+        JsonSerializerSettings settings = new JsonSerializerSettings()
+        {
+            MissingMemberHandling = MissingMemberHandling.Ignore,
+            NullValueHandling = NullValueHandling.Ignore
+        };
         SpotifyAuth sAuth = new SpotifyAuth();
         string generatedState = "";
 
@@ -33,18 +36,6 @@ namespace SpotifyMVC.Controllers
             return new string(Enumerable.Repeat(chars, length)
               .Select(s => s[random.Next(s.Length)]).ToArray());
         }
-        public IActionResult Auth()
-        {
-            var qb = new QueryBuilder();
-            qb.Add("client_id", sAuth.clientID);
-            qb.Add("response_type", "code");
-            qb.Add("redirect_uri", sAuth.redirectURL);
-            qb.Add("scope", "user-read-private user-read-email");
-            qb.Add("state", generatedState);
-            ViewData["params"] = qb.ToQueryString().ToString();
-            return View();
-        }
-
         public TokensResponse GetTokens(string code)
         {
             string responseString;
@@ -60,14 +51,35 @@ namespace SpotifyMVC.Controllers
                 var responseContent = client.PostAsync("https://accounts.spotify.com/api/token", parameters).Result.Content;
                 responseString = responseContent.ReadAsStringAsync().Result;
             }
-            var settings = new JsonSerializerSettings();
-            settings.MissingMemberHandling = MissingMemberHandling.Ignore;
-            settings.NullValueHandling = NullValueHandling.Ignore;
             return JsonConvert.DeserializeObject<TokensResponse>(responseString, settings);
+        }
+
+        public Paging GetTracks(string access_token)
+        {
+            string responseString;
+            using (HttpClient client = new HttpClient())
+            {
+                var authorization = access_token;
+                client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", access_token);
+                var responseContent = client.GetAsync("https://api.spotify.com/v1/me/tracks").Result.Content;
+                responseString = responseContent.ReadAsStringAsync().Result;
+            }
+            return JsonConvert.DeserializeObject<Paging>(responseString, settings);
+        }
+        public IActionResult Auth()
+        {
+            var qb = new QueryBuilder();
+            qb.Add("client_id", sAuth.clientID);
+            qb.Add("response_type", "code");
+            qb.Add("redirect_uri", sAuth.redirectURL);
+            qb.Add("scope", "user-read-private user-library-read");
+            qb.Add("state", generatedState);
+            ViewData["params"] = qb.ToQueryString().ToString();
+            return View();
         }
         public IActionResult Callback(string code, string state)
         {
-            if (generatedState == state)
+            if (generatedState == state) //TO JESZCZE NIE DZIALA
             {
                 @ViewData["state"] = "ok";
             }
@@ -76,6 +88,9 @@ namespace SpotifyMVC.Controllers
                 @ViewData["state"] = "bad state";
 
             }
+            //TO JUZ TAK
+            var tokens = GetTokens(code);
+            var tracksPaging = GetTracks(tokens.access_token);
             return View();
         }
 

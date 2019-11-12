@@ -215,5 +215,28 @@ dt.open + dd {
   user-select: none;
   cursor: pointer;
   transform: perspective(600px) rotateX(0deg) scale(1);
-  transition: all 0.2s linear;
+}
+
+.callback-redirect-container {
+  position: relative;
+  margin: auto;
+}
+.callback-redirect {
+  background-color: var(--accent);
+  padding: auto;
+  border: none;
+  outline: none;
+  text-decoration: none;
+  text-transform: uppercase;
+  display: inline-block;
+  width: 12vw;
+  height: 8vw;
+  text-align: center;
+  line-height: 4vw;
+  letter-spacing: 2px;
+  border-radius: 6px;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  user-select: none;
+  transform: perspective(600px) rotateX(0deg) scale(1);
 }

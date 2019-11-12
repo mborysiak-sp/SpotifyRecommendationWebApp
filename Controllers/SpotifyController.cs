@@ -18,6 +18,7 @@ namespace SpotifyMVC.Controllers
     public class SpotifyController : Controller
     {
         SpotifyAuth sAuth = new SpotifyAuth();
+        string generatedState = "";
 
         private readonly ILogger<SpotifyController> _logger;
 
@@ -25,7 +26,13 @@ namespace SpotifyMVC.Controllers
         {
             _logger = logger;
         }
-
+        private static Random random = new Random();
+        public static string RandomString(int length)
+        {
+            const string chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+            return new string(Enumerable.Repeat(chars, length)
+              .Select(s => s[random.Next(s.Length)]).ToArray());
+        }
         public IActionResult Auth()
         {
             var qb = new QueryBuilder();
@@ -33,11 +40,13 @@ namespace SpotifyMVC.Controllers
             qb.Add("response_type", "code");
             qb.Add("redirect_uri", sAuth.redirectURL);
             qb.Add("scope", "user-read-private user-read-email");
+            qb.Add("state", generatedState);
             ViewData["params"] = qb.ToQueryString().ToString();
             return View();
         }
 
-        public TokensResponse GetTokens(string code){
+        public TokensResponse GetTokens(string code)
+        {
             string responseString;
             using (HttpClient client = new HttpClient())
             {
@@ -51,15 +60,27 @@ namespace SpotifyMVC.Controllers
                 var responseContent = client.PostAsync("https://accounts.spotify.com/api/token", parameters).Result.Content;
                 responseString = responseContent.ReadAsStringAsync().Result;
             }
-            return JsonConvert.DeserializeObject<TokensResponse>(responseString);
+            var settings = new JsonSerializerSettings();
+            settings.MissingMemberHandling = MissingMemberHandling.Ignore;
+            settings.NullValueHandling = NullValueHandling.Ignore;
+            return JsonConvert.DeserializeObject<TokensResponse>(responseString, settings);
         }
-        public IActionResult Callback(string code)
+        public IActionResult Callback(string code, string state)
         {
-            @ViewData["access_token"] = GetTokens(code).access_token;
+            if (generatedState == state)
+            {
+                @ViewData["state"] = "ok";
+            }
+            else
+            {
+                @ViewData["state"] = "bad state";
+
+            }
             return View();
         }
 
-        public IActionResult Dashboard(){
+        public IActionResult Dashboard()
+        {
             return View();
         }
         [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]

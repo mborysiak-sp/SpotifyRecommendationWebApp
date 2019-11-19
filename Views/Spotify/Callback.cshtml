@@ -1,8 +1,21 @@
 ﻿<main class="no-scroll">
     <div class="v-align">
         <div class="callback-redirect font-white">
-            <span class="font-heading font-big">@ViewData["state"]</span><br>
-            <span class="font-content font-medium">##redirecting to##</span>
+            <span class="font-heading font-big">@ViewData["state"]</span>
         </div>
     </div>
 </main>
+<script>
+    $(document).ready(function () {
+        setTimeout(function () {
+            var url = new URL(window.location.href);
+            var status = '@ViewData["status"]';
+            if (status == 'ok'){
+                var code = url.searchParams.get("code");
+                window.location.href = '@Url.Action("Dashboard","Spotify")?code=' + code;
+            } else {
+                window.location.href = '@Url.Action("Auth","Spotify")';
+            }
+        },2500)
+    });
+</script>

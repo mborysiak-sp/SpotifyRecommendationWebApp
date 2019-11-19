@@ -21,7 +21,6 @@ namespace SpotifyMVC.Controllers
             NullValueHandling = NullValueHandling.Ignore
         };
         SpotifyAuth sAuth = new SpotifyAuth();
-        string generatedState = "";
 
         private readonly ILogger<SpotifyController> _logger;
 
@@ -68,34 +67,37 @@ namespace SpotifyMVC.Controllers
         }
         public IActionResult Auth()
         {
+            var state = RandomString(8);
             var qb = new QueryBuilder();
             qb.Add("client_id", sAuth.clientID);
             qb.Add("response_type", "code");
             qb.Add("redirect_uri", sAuth.redirectURL);
             qb.Add("scope", "user-read-private user-library-read");
-            qb.Add("state", generatedState);
+            qb.Add("state", state);
+            TempData["state"] = state;
             ViewData["params"] = qb.ToQueryString().ToString();
             return View();
         }
         public IActionResult Callback(string code, string state)
         {
-            if (generatedState == state) //TO JESZCZE NIE DZIALA
+            if ((string)TempData["state"] == state)
             {
-                @ViewData["state"] = "ok";
+                @ViewData["state"] = "Authentication Successfull";
+                @ViewData["status"] = "ok";
             }
             else
             {
-                @ViewData["state"] = "bad state";
-
+                @ViewData["state"] = "Authentication Failed: Invalid State";
+                @ViewData["status"] = null;
             }
-            //TO JUZ TAK
-            var tokens = GetTokens(code);
-            var tracksPaging = GetTracks(tokens.access_token);
+            TempData["state"] = null;
             return View();
         }
 
-        public IActionResult Dashboard()
+        public IActionResult Dashboard(String code)
         {
+            var tokens = GetTokens(code);
+            var tracksPaging = GetTracks(tokens.access_token);
             return View();
         }
         [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]

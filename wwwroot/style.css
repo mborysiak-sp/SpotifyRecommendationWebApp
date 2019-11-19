@@ -193,30 +193,6 @@ dt.open {
 dt.open + dd {
   padding: 15px 15px 30px;
 }
-.more-button-container {
-  margin: auto;
-  width: 6vw;
-}
-
-.more-button {
-  background-color: var(--accent);
-  border: none;
-  outline: none;
-  text-decoration: none;
-  text-transform: uppercase;
-  display: inline-block;
-  width: 100%;
-  text-align: center;
-  line-height: 6vh;
-  letter-spacing: 2px;
-  border-radius: 6px;
-  white-space: nowrap;
-  text-overflow: ellipsis;
-  user-select: none;
-  cursor: pointer;
-  transform: perspective(600px) rotateX(0deg) scale(1);
-}
-
 .callback-redirect-container {
   position: relative;
   margin: auto;
@@ -229,8 +205,8 @@ dt.open + dd {
   text-decoration: none;
   text-transform: uppercase;
   display: inline-block;
-  width: 12vw;
-  height: 8vw;
+  width: 28vw;
+  height: 4vw;
   text-align: center;
   line-height: 4vw;
   letter-spacing: 2px;

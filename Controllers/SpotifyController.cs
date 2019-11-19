@@ -15,6 +15,7 @@ namespace SpotifyMVC.Controllers
 
     public class SpotifyController : Controller
     {
+        #region PROPERTIES
         JsonSerializerSettings settings = new JsonSerializerSettings()
         {
             MissingMemberHandling = MissingMemberHandling.Ignore,
@@ -29,12 +30,19 @@ namespace SpotifyMVC.Controllers
             _logger = logger;
         }
         private static Random random = new Random();
+        #endregion
+
+        #region SUPPORT_FUNCTIONS
         public static string RandomString(int length)
         {
             const string chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
             return new string(Enumerable.Repeat(chars, length)
               .Select(s => s[random.Next(s.Length)]).ToArray());
         }
+
+        #endregion
+
+        #region REQUESTS
         public TokensResponse GetTokens(string code)
         {
             string responseString;
@@ -53,7 +61,6 @@ namespace SpotifyMVC.Controllers
             return JsonConvert.DeserializeObject<TokensResponse>(responseString, settings);
         }
 
-
         public Paging GetTracks(string access_token)
         {
             string responseString;
@@ -66,6 +73,23 @@ namespace SpotifyMVC.Controllers
             }
             return JsonConvert.DeserializeObject<Paging>(responseString, settings);
         }
+
+        public Paging GetAlbums(string access_token, string artistID)
+        {
+            string responseString;
+            using (HttpClient client = new HttpClient())
+            {
+                var authorization = access_token;
+                client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", access_token);
+                String adres = "https://api.spotify.com/v1/artists/" + artistID + "/albums";
+                var responseContent = client.GetAsync(adres).Result.Content;
+                responseString = responseContent.ReadAsStringAsync().Result;
+            }
+            return JsonConvert.DeserializeObject<Paging>(responseString, settings);
+        }
+        #endregion
+
+        #region VIEWS
         public IActionResult Auth()
         {
             var state = RandomString(8);
@@ -104,23 +128,11 @@ namespace SpotifyMVC.Controllers
             foreach (String a in artists) albums.Add(GetAlbums(tokens.access_token, a));
             return View();
         }
-        public Paging GetAlbums(string access_token, string artistID)
-        {
-            string responseString;
-            using (HttpClient client = new HttpClient())
-            {
-                var authorization = access_token;
-                client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", access_token);
-                String adres = "https://api.spotify.com/v1/artists/" + artistID + "/albums";
-                var responseContent = client.GetAsync(adres).Result.Content;
-                responseString = responseContent.ReadAsStringAsync().Result;
-            }
-            return JsonConvert.DeserializeObject<Paging>(responseString, settings);
-        }
         [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
         public IActionResult Error()
         {
             return View(new ErrorViewModel { RequestId = Activity.Current?.Id ?? HttpContext.TraceIdentifier });
         }
+        #endregion
     }
 }

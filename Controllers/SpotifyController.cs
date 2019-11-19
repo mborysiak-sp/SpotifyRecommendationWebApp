@@ -54,6 +54,7 @@ namespace SpotifyMVC.Controllers
             return JsonConvert.DeserializeObject<TokensResponse>(responseString, settings);
         }
 
+
         public Paging GetTracks(string access_token)
         {
             string responseString;
@@ -91,9 +92,35 @@ namespace SpotifyMVC.Controllers
             //TO JUZ TAK
             var tokens = GetTokens(code);
             var tracksPaging = GetTracks(tokens.access_token);
+        
+
+
+
+            var artists = new HashSet<String>();
+            foreach (var i in tracksPaging.items) foreach (var j in i.track.artists) artists.Add(j.id);
+
+            var albums = new HashSet<Paging>();
+            foreach (String a in artists) albums.Add(GetAlbums(tokens.access_token, a));
+
+
+
             return View();
         }
 
+
+        public Paging GetAlbums(string access_token, string artistID)
+        {
+            string responseString;
+            using (HttpClient client = new HttpClient())
+            {
+                var authorization = access_token;
+                client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", access_token);
+                String adres = "https://api.spotify.com/v1/artists/"+artistID+"/albums";
+                var responseContent = client.GetAsync(adres).Result.Content;
+                responseString = responseContent.ReadAsStringAsync().Result;
+            }
+            return JsonConvert.DeserializeObject<Paging>(responseString, settings);
+        }
         public IActionResult Dashboard()
         {
             return View();

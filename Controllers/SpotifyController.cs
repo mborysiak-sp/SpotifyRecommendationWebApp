@@ -90,20 +90,7 @@ namespace SpotifyMVC.Controllers
 
             }
             //TO JUZ TAK
-            var tokens = GetTokens(code);
-            var tracksPaging = GetTracks(tokens.access_token);
-        
-
-
-
-            var artists = new HashSet<String>();
-            foreach (var i in tracksPaging.items) foreach (var j in i.track.artists) artists.Add(j.id);
-
-            var albums = new HashSet<Paging>();
-            foreach (String a in artists) albums.Add(GetAlbums(tokens.access_token, a));
-
-
-
+    
             return View();
         }
 
@@ -121,8 +108,18 @@ namespace SpotifyMVC.Controllers
             }
             return JsonConvert.DeserializeObject<Paging>(responseString, settings);
         }
-        public IActionResult Dashboard()
+        public IActionResult Dashboard(String code)
         {
+                        var tokens = GetTokens(code);
+            var tracksPaging = GetTracks(tokens.access_token);
+
+                        var artists = new HashSet<String>();
+            foreach (var i in tracksPaging.items) foreach (var j in i.track.artists) artists.Add(j.id);
+
+            var albums = new HashSet<Paging>();
+            foreach (String a in artists) albums.Add(GetAlbums(tokens.access_token, a));
+
+
             return View();
         }
         [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]

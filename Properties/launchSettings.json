@@ -3,8 +3,8 @@
     "windowsAuthentication": false,
     "anonymousAuthentication": true,
     "iisExpress": {
-      "applicationUrl": "http://localhost:42408",
-      "sslPort": 44380
+      "applicationUrl": "http://localhost:27720",
+      "sslPort": 44311
     }
   },
   "profiles": {
@@ -15,7 +15,7 @@
         "ASPNETCORE_ENVIRONMENT": "Development"
       }
     },
-    "SpotifyMVC": {
+    "C__Razor___Polecanko": {
       "commandName": "Project",
       "launchBrowser": true,
       "applicationUrl": "https://localhost:5001",

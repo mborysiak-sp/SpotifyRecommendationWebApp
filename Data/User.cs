@@ -1,4 +1,4 @@
-namespace SpotifyMVC.Models
+namespace SpotifyR
 {
     public class User
     {

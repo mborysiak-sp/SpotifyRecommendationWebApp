@@ -2,7 +2,7 @@
 
   <PropertyGroup>
     <TargetFramework>netcoreapp3.0</TargetFramework>
-    <RootNamespace>SpotifyMVC</RootNamespace>
+    <RootNamespace>C__Razor___Polecanko</RootNamespace>
   </PropertyGroup>
 
 
@@ -11,7 +11,7 @@
 
 
   <ItemGroup>
-    <PackageReference Include="Newtonsoft.Json" Version="12.0.2" />
+    <PackageReference Include="Newtonsoft.Json" Version="12.0.3" />
   </ItemGroup>
 
 </Project>

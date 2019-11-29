@@ -1,48 +1,25 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Linq;
-using Microsoft.AspNetCore.Http.Extensions;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Logging;
-using SpotifyMVC.Models;
 using System.Net.Http;
 using System.Net.Http.Headers;
+using Microsoft.AspNetCore.Http.Extensions;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.RazorPages;
 using Newtonsoft.Json;
 
-namespace SpotifyMVC.Controllers
+namespace SpotifyR
 {
-
-    public class SpotifyController : Controller
+    public class DashboardModel : PageModel
     {
-        #region PROPERTIES
+        private SpotifyAuth sAuth = new SpotifyAuth();
+
         JsonSerializerSettings settings = new JsonSerializerSettings()
         {
             MissingMemberHandling = MissingMemberHandling.Ignore,
             NullValueHandling = NullValueHandling.Ignore
         };
-        SpotifyAuth sAuth = new SpotifyAuth();
 
-        private readonly ILogger<SpotifyController> _logger;
-
-        public SpotifyController(ILogger<SpotifyController> logger)
-        {
-            _logger = logger;
-        }
-        private static Random random = new Random();
-        #endregion
-
-        #region SUPPORT_FUNCTIONS
-        public static string RandomString(int length)
-        {
-            const string chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
-            return new string(Enumerable.Repeat(chars, length)
-              .Select(s => s[random.Next(s.Length)]).ToArray());
-        }
-
-        #endregion
-
-        #region REQUESTS
         public TokensResponse GetTokens(string code)
         {
             string responseString;
@@ -87,52 +64,22 @@ namespace SpotifyMVC.Controllers
             }
             return JsonConvert.DeserializeObject<Paging>(responseString, settings);
         }
-        #endregion
 
-        #region VIEWS
-        public IActionResult Auth()
-        {
-            var state = RandomString(8);
-            var qb = new QueryBuilder();
-            qb.Add("client_id", sAuth.clientID);
-            qb.Add("response_type", "code");
-            qb.Add("redirect_uri", sAuth.redirectURL);
-            qb.Add("scope", "user-read-private user-library-read");
-            qb.Add("state", state);
-            TempData["state"] = state;
-            ViewData["params"] = qb.ToQueryString().ToString();
-            return View();
-        }
-        public IActionResult Callback(string code, string state)
-        {
-            if ((string)TempData["state"] == state)
-            {
-                @ViewData["state"] = "Authentication Successfull";
-                @ViewData["status"] = "ok";
-            }
-            else
-            {
-                @ViewData["state"] = "Authentication Failed: Invalid State";
-                @ViewData["status"] = null;
-            }
-            TempData["state"] = null;
-            return View();
-        }
+        // public List<User> ZrobJebanyAlgorytmRafałKurwa(TokensResponse tokens){
+        //     var tracksPaging = GetTracks(tokens.access_token);
+        //     var artists = new HashSet<String>();
+        //     foreach (var i in tracksPaging.items) foreach (var j in i.track.artists) artists.Add(j.id);
+        //     var albums = new HashSet<Paging>();
+        //     foreach (String a in artists) albums.Add(GetAlbums(tokens.access_token, a));
+
+        //     return null;
+        // }
+
         public IActionResult Dashboard(String code)
         {
             var tokens = GetTokens(code);
-            var tracksPaging = GetTracks(tokens.access_token);
-            var artists = new HashSet<String>();
-            foreach (var i in tracksPaging.items) foreach (var j in i.track.artists) artists.Add(j.id);
-            var albums = new HashSet<Paging>();
-            foreach (String a in artists) albums.Add(GetAlbums(tokens.access_token, a));
-            return View();
+            // ZrobJebanyAlgorytmRafałKurwa(tokens);
+            return Page();
         }
-        [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
-        public IActionResult Error()
-        {
-            return View(new ErrorViewModel { RequestId = Activity.Current?.Id ?? HttpContext.TraceIdentifier });
-        }
-        #endregion
     }
 }

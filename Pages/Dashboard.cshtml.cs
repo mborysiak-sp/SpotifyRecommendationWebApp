@@ -38,15 +38,15 @@ namespace SpotifyR
             return JsonConvert.DeserializeObject<TokensResponse>(responseString, settings);
         }
 
-        public Paging GetTracks(string access_token)
+        public Paging GetTracks(string access_token, int i)
         {
-            string responseString;
+            string responseString = "";
             using (HttpClient client = new HttpClient())
             {
                 var authorization = access_token;
                 client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", access_token);
-                var responseContent = client.GetAsync("https://api.spotify.com/v1/me/tracks").Result.Content;
-                responseString = responseContent.ReadAsStringAsync().Result;
+                var responseContent = client.GetAsync("https://api.spotify.com/v1/me/tracks?offset="+i).Result.Content;
+                responseString += responseContent.ReadAsStringAsync().Result;
             }
             return JsonConvert.DeserializeObject<Paging>(responseString, settings);
         }
@@ -65,15 +65,19 @@ namespace SpotifyR
             return JsonConvert.DeserializeObject<Paging>(responseString, settings);
         }
 
-        // public List<User> ZrobJebanyAlgorytmRafałKurwa(TokensResponse tokens){
-        //     var tracksPaging = GetTracks(tokens.access_token);
-        //     var artists = new HashSet<String>();
-        //     foreach (var i in tracksPaging.items) foreach (var j in i.track.artists) artists.Add(j.id);
-        //     var albums = new HashSet<Paging>();
-        //     foreach (String a in artists) albums.Add(GetAlbums(tokens.access_token, a));
+        public List<User> ZrobJebanyAlgorytmRafałKurwa(TokensResponse tokens){
+            var artists = new HashSet<String>();
+            var albums = new HashSet<Paging>();
 
-        //     return null;
-        // }
+            for (int i = 0; i<10; i++) {
+                var tracksPaging = GetTracks(tokens.access_token, 20*i);
+                foreach (var k in tracksPaging.items) foreach (var j in k.track.artists) artists.Add(j.id);
+                foreach (var k in tracksPaging.items) foreach (var j in k.track.artists) artists.Add(j.id);
+                foreach (String a in artists) albums.Add(GetAlbums(tokens.access_token, a));
+            }
+
+            return null;
+        }
 
         public IActionResult Dashboard(String code)
         {

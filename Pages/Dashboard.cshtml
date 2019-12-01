@@ -10,7 +10,9 @@
 </header>
 <main>
     <dl>
-        <dt class="font-heading font-big font-green">#artist# - #title#</dt>
-        <dd class="font-content font-medium font-white">#player #album #duration</dd>
+        @foreach (var track in Model.NEW_RELEASES){
+            <dt class="font-heading font-big font-green">#artist# - @track.name</dt>
+            <dd class="font-content font-medium font-white">#player #album #duration</dd>
+        }
     </dl>
 </main>

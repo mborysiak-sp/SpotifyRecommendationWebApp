@@ -91,6 +91,7 @@ html,
 body {
   min-height: 100vh;
   margin: 0;
+  scrollbar-color: var(--accent) var(--primary);
 }
 
 body {
@@ -205,10 +206,10 @@ dt.open + dd {
   text-decoration: none;
   text-transform: uppercase;
   display: inline-block;
-  width: 28vw;
-  height: 4vw;
+  width: 20vw;
+  height: 3vw;
   text-align: center;
-  line-height: 4vw;
+  line-height: 3vw;
   letter-spacing: 2px;
   border-radius: 6px;
   white-space: nowrap;

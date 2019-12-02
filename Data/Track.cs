@@ -10,5 +10,7 @@ namespace SpotifyR
         public int popularity { get; set; }
         public string preview_url { get; set; }
         public string uri { get; set; }
+        public int duration_ms { get; set; }
+        // public int duration { }
     }
 }

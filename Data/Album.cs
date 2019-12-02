@@ -8,7 +8,8 @@ namespace SpotifyR
         public string id { get; set; }
         public Image[] images { get; set; }
         public string release_date { get; set; }
-        public Paging[] tracks { get; set; }
+        public PagingTrack[] tracks { get; set; }
         public string uri { get; set; }
+        public string name { get; set; }
     }
 }

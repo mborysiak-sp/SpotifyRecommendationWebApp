@@ -67,25 +67,27 @@ namespace SpotifyR
             return JsonConvert.DeserializeObject<Paging>(responseString, settings);
         }
 
-        // public List<User> ZrobJebanyAlgorytmRafałKurwa(TokensResponse tokens){
-        //     var artists = new HashSet<String>();
-        //     var albums = new HashSet<Paging>();
+        public List<User> ZrobJebanyAlgorytmRafałKurwa(TokensResponse tokens){
+             var artists = new HashSet<String>();
+             var albums = new HashSet<Paging>();
+             var newTracks = new HashSet<Paging>();
 
-        //     for (int i = 0; i<10; i++) {
-        //         var tracksPaging = GetTracks(tokens.access_token, 20*i);
-        //         foreach (var k in tracksPaging.items) foreach (var j in k.track.artists) artists.Add(j.id);
-        //         foreach (var k in tracksPaging.items) foreach (var j in k.track.artists) artists.Add(j.id);
-        //         foreach (String a in artists) albums.Add(GetAlbums(tokens.access_token, a));
-        //     }
+             for (int i = 0; i<10; i++) {
+                 var tracksPaging = GetTracks(tokens.access_token, 20*i);
+                 foreach (var k in tracksPaging.items) foreach (var j in k.track.artists) artists.Add(j.id);
+                 foreach (var k in tracksPaging.items) foreach (var j in k.track.artists) artists.Add(j.id);
+                 //foreach (String a in artists) albums.Add(GetAlbums(tokens.access_token, a));
 
-        //     return null;
-        // }
+             }
+
+             return null;
+        }
 
         public IActionResult OnGet(String code)
         {
             var tokens = GetTokens(code);
             NEW_RELEASES = new List<Track>();
-            // ZrobJebanyAlgorytmRafałKurwa(tokens);
+            ZrobJebanyAlgorytmRafałKurwa(tokens);
             return Page();
         }
     }

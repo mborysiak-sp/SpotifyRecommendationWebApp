@@ -69,29 +69,46 @@ namespace SpotifyR
             return JsonConvert.DeserializeObject<PagingAlbum>(responseString, settings);
         }
 
-        public List<Track> ZrobJebanyAlgorytmRafałKurwa(TokensResponse tokens){
+        public List<Track> NewReleases(TokensResponse tokens)
+        {
             var artists = new HashSet<String>();
             var albums = new HashSet<Album>();
-            var resultHash = new HashSet<Track>();
-            var resultList = new List<Track>();
+            var tracks = new HashSet<Track>();
 
-            for (int i = 0; i<10; i++) {
-                var tracksPaging = GetTracks(tokens.access_token, 20*i);
-                foreach (var k in tracksPaging.items) foreach (var j in k.track.artists) artists.Add(j.id);
-                //dla kazdego artysty w "artists" wszystkie albumny nowsze niz X dni wstecz od dzisiaj
-                //dla kazdego z tych albumow top X najpopularniejszych utworow do "tracks"
-            }
+            //wszyscy obserwowani artysci do "artists"
+            //dla kazdego obswerowanego artysty wszystkie albumny nowsze niz X dni wstecz od dzisiaj do "albums"
+            //dla kazdego z tych albumow top X najpopularniejszych utworow do "tracks"
 
-            resultList = resultHash.ToList();
+            var resultList = tracks.ToList();
+            resultList.Shuffle();
+
             return resultList;
         }
 
         public IActionResult OnGet(String code)
         {
             var tokens = GetTokens(code);
-            NEW_RELEASES = new List<Track>();
-            ZrobJebanyAlgorytmRafałKurwa(tokens);
+            NEW_RELEASES = NewReleases(tokens);
+            // DISCOVER = Discover(tokens);
             return Page();
+        }
+    }
+
+    static class MyExtensions
+    {
+        private static Random rng = new Random();
+
+        public static void Shuffle<T>(this IList<T> list)
+        {
+            int n = list.Count;
+            while (n > 1)
+            {
+                n--;
+                int k = rng.Next(n + 1);
+                T value = list[k];
+                list[k] = list[n];
+                list[n] = value;
+            }
         }
     }
 }

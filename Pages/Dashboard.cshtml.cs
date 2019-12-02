@@ -41,7 +41,18 @@ namespace SpotifyR
             }
             return JsonConvert.DeserializeObject<TokensResponse>(responseString, settings);
         }
-
+        public Track GetTrack(string access_token, string tID)
+        {
+            string responseString = "";
+            using (HttpClient client = new HttpClient())
+            {
+                var authorization = access_token;
+                client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", access_token);
+                var responseContent = client.GetAsync("https://api.spotify.com/v1/tracks/" + tID).Result.Content;
+                responseString += responseContent.ReadAsStringAsync().Result;
+            }
+            return JsonConvert.DeserializeObject<Track>(responseString, settings);
+        }
         public PagingTrack GetTracks(string access_token, int i)
         {
             string responseString = "";
@@ -69,28 +80,71 @@ namespace SpotifyR
             return JsonConvert.DeserializeObject<PagingAlbum>(responseString, settings);
         }
 
+        public PagingAlbum GetAlbum(string access_token, string albumID)
+        {
+            string responseString;
+            using (HttpClient client = new HttpClient())
+            {
+                var authorization = access_token;
+                client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", access_token);
+                String adres = "https://api.spotify.com/v1/albums/" + albumID + "/tracks";
+                var responseContent = client.GetAsync(adres).Result.Content;
+                responseString = responseContent.ReadAsStringAsync().Result;
+            }
+            return JsonConvert.DeserializeObject<PagingAlbum>(responseString, settings);
+        }
+
+
+        public Boolean Datownik(String data) {
+            if (data.Length!=10) return false;
+            var numbers = data.Split('-').Select(Int32.Parse).ToList();
+            DateTime date = new DateTime(numbers[0], numbers[1], numbers[2]);
+            var now = DateTime.Now;
+            TimeSpan diff = now.Subtract(date);
+            TimeSpan diff0 = new TimeSpan(3000, 0, 0, 0);
+            return diff<diff0;
+        }
         public List<Track> ZrobJebanyAlgorytmRafałKurwa(TokensResponse tokens){
             var artists = new HashSet<String>();
+            var newalbums = new HashSet<String>();
+            var newtracks = new HashSet<String>();
+            var poptracks = new HashSet<String>();
             var albums = new HashSet<Album>();
             var resultHash = new HashSet<Track>();
             var resultList = new List<Track>();
 
+            var albumPaging = new PagingAlbum();
             for (int i = 0; i<10; i++) {
                 var tracksPaging = GetTracks(tokens.access_token, 20*i);
-                foreach (var k in tracksPaging.items) foreach (var j in k.track.artists) artists.Add(j.id);
+                try{
+                    foreach (var k in tracksPaging.items) foreach (var j in k.track.artists) artists.Add(j.id);
+                foreach (var artist in artists) {
+                    var albumsPaging = GetAlbums(tokens.access_token, artist);
+                    foreach (var a in albumsPaging.items) if (Datownik(a.release_date)) newalbums.Add(a.id);
+                }
+                foreach (var a in newalbums) {
+                    var aPaging = GetAlbum(tokens.access_token, a);
+                    foreach (var g in aPaging.items) newtracks.Add(g.id);
+                }
+                foreach (var s in newtracks) {
+                    var track = GetTrack(tokens.access_token, s);
+                    if (track.popularity>60) poptracks.Add(track.id);
+                }
+                }catch (System.NullReferenceException) {}
                 //dla kazdego artysty w "artists" wszystkie albumny nowsze niz X dni wstecz od dzisiaj
                 //dla kazdego z tych albumow top X najpopularniejszych utworow do "tracks"
             }
 
             resultList = resultHash.ToList();
+            //resultList = resultHash.ToList();
             return resultList;
         }
 
         public IActionResult OnGet(String code)
         {
             var tokens = GetTokens(code);
-            NEW_RELEASES = new List<Track>();
-            ZrobJebanyAlgorytmRafałKurwa(tokens);
+           var NEW_RELEASES = new List<Track>();
+            NEW_RELEASES = ZrobJebanyAlgorytmRafałKurwa(tokens);
             return Page();
         }
     }

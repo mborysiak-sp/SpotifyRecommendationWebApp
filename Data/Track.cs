@@ -11,6 +11,9 @@ namespace SpotifyR
         public string preview_url { get; set; }
         public string uri { get; set; }
         public int duration_ms { get; set; }
-        // public int duration { }
+        public int duration
+        {
+            get => duration_ms / 1000;
+        }
     }
 }

@@ -1,9 +1,9 @@
 namespace SpotifyR
 {
-    public class Paging
+    public class PagingAlbum
     {
         public string href { get; set; }
-        public SavedTrack[] items { get; set; }
+        public Album[] items { get; set; }
         public int limit { get; set; }
         public string next { get; set; }
         public int offset { get; set; }

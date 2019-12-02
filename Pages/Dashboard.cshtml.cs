@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Net.Http;
 using System.Net.Http.Headers;
-using Microsoft.AspNetCore.Http.Extensions;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Newtonsoft.Json;
@@ -14,6 +13,9 @@ namespace SpotifyR
     {
         [BindProperty]
         public List<Track> NEW_RELEASES { get; set; }
+
+        [BindProperty]
+        public List<Track> DISCOVER { get; set; }
         private SpotifyAuth sAuth = new SpotifyAuth();
 
         JsonSerializerSettings settings = new JsonSerializerSettings()
@@ -40,7 +42,7 @@ namespace SpotifyR
             return JsonConvert.DeserializeObject<TokensResponse>(responseString, settings);
         }
 
-        public Paging GetTracks(string access_token, int i)
+        public PagingTrack GetTracks(string access_token, int i)
         {
             string responseString = "";
             using (HttpClient client = new HttpClient())
@@ -50,10 +52,10 @@ namespace SpotifyR
                 var responseContent = client.GetAsync("https://api.spotify.com/v1/me/tracks?offset=" + i).Result.Content;
                 responseString += responseContent.ReadAsStringAsync().Result;
             }
-            return JsonConvert.DeserializeObject<Paging>(responseString, settings);
+            return JsonConvert.DeserializeObject<PagingTrack>(responseString, settings);
         }
 
-        public Paging GetAlbums(string access_token, string artistID)
+        public PagingAlbum GetAlbums(string access_token, string artistID)
         {
             string responseString;
             using (HttpClient client = new HttpClient())
@@ -64,28 +66,31 @@ namespace SpotifyR
                 var responseContent = client.GetAsync(adres).Result.Content;
                 responseString = responseContent.ReadAsStringAsync().Result;
             }
-            return JsonConvert.DeserializeObject<Paging>(responseString, settings);
+            return JsonConvert.DeserializeObject<PagingAlbum>(responseString, settings);
         }
 
-        // public List<User> ZrobJebanyAlgorytmRafałKurwa(TokensResponse tokens){
-        //     var artists = new HashSet<String>();
-        //     var albums = new HashSet<Paging>();
+        public List<Track> ZrobJebanyAlgorytmRafałKurwa(TokensResponse tokens){
+            var artists = new HashSet<String>();
+            var albums = new HashSet<Album>();
+            var resultHash = new HashSet<Track>();
+            var resultList = new List<Track>();
 
-        //     for (int i = 0; i<10; i++) {
-        //         var tracksPaging = GetTracks(tokens.access_token, 20*i);
-        //         foreach (var k in tracksPaging.items) foreach (var j in k.track.artists) artists.Add(j.id);
-        //         foreach (var k in tracksPaging.items) foreach (var j in k.track.artists) artists.Add(j.id);
-        //         foreach (String a in artists) albums.Add(GetAlbums(tokens.access_token, a));
-        //     }
+            for (int i = 0; i<10; i++) {
+                var tracksPaging = GetTracks(tokens.access_token, 20*i);
+                foreach (var k in tracksPaging.items) foreach (var j in k.track.artists) artists.Add(j.id);
+                //dla kazdego artysty w "artists" wszystkie albumny nowsze niz X dni wstecz od dzisiaj
+                //dla kazdego z tych albumow top X najpopularniejszych utworow do "tracks"
+            }
 
-        //     return null;
-        // }
+            resultList = resultHash.ToList();
+            return resultList;
+        }
 
         public IActionResult OnGet(String code)
         {
             var tokens = GetTokens(code);
             NEW_RELEASES = new List<Track>();
-            // ZrobJebanyAlgorytmRafałKurwa(tokens);
+            ZrobJebanyAlgorytmRafałKurwa(tokens);
             return Page();
         }
     }

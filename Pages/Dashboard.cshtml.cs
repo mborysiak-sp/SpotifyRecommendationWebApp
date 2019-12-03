@@ -86,25 +86,25 @@ namespace SpotifyR
             return JsonConvert.DeserializeObject<PagingAlbum>(responseString, settings);
         }
 
-        public PagingAlbum GetAlbumById(string access_token, string albumID)
+        public Album GetAlbumById(string access_token, string albumID)
         {
             string responseString;
             using (HttpClient client = new HttpClient())
             {
                 var authorization = access_token;
                 client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", access_token);
-                String adres = "https://api.spotify.com/v1/albums/" + albumID + "/tracks";
+                String adres = "https://api.spotify.com/v1/albums/" + albumID;
                 var response = client.GetAsync(adres);
                 var responseContent = response.Result.Content;
                 responseString = responseContent.ReadAsStringAsync().Result;
             }
-            return JsonConvert.DeserializeObject<PagingAlbum>(responseString, settings);
+            return JsonConvert.DeserializeObject<Album>(responseString, settings);
         }
 
         public IActionResult OnGet(String code)
         {
             var access_token = GetTokens(code).access_token;
-            var NEW_RELEASES = NewReleases(access_token);
+            NEW_RELEASES = NewReleases(access_token);
             return Page();
         }
 
@@ -112,9 +112,10 @@ namespace SpotifyR
         {
             var followedArtists = GetFollowedArtists(access_token, null);
             var newestAlbums = GetNewReleases(access_token, followedArtists);
-            // get the 3 most popular songs
-            // shuffle the list
-            return null;
+            var newSongs = GetPopularSongs(access_token, newestAlbums);
+            // remove duplicates
+            // shuffle
+            return newSongs;
         }
 
         public List<Artist> GetFollowedArtists(String access_token, String next)
@@ -166,6 +167,24 @@ namespace SpotifyR
                         }
                     }
                     //feats???
+                }
+            }
+            return resultList;
+        }
+
+        public List<Track> GetPopularSongs(String access_token, List<Album> albums)
+        {
+            var resultList = new List<Track>();
+            foreach (var album in albums)
+            {
+                var albumSpecific = GetAlbumById(access_token, album.id);
+                if (albumSpecific.id != null)
+                {
+                    var albumTracks = albumSpecific.tracks.items.ToList();
+                    albumTracks.Sort((p, q) => p.popularity.CompareTo(q.popularity));
+                    var returnSize = albumTracks.Count * 0.15;
+                    returnSize = returnSize<1 ? 1 : returnSize;
+                    for (var i = 0; i < returnSize; i++) resultList.Add(albumTracks[i]);
                 }
             }
             return resultList;

@@ -41,7 +41,7 @@ namespace SpotifyR
             }
             return JsonConvert.DeserializeObject<TokensResponse>(responseString, settings);
         }
-        public Track GetTrack(string access_token, string tID)
+        public Track GetTrackById(string access_token, string tID)
         {
             string responseString = "";
             using (HttpClient client = new HttpClient())
@@ -53,20 +53,8 @@ namespace SpotifyR
             }
             return JsonConvert.DeserializeObject<Track>(responseString, settings);
         }
-        public PagingTrack GetTracks(string access_token, int i)
-        {
-            string responseString = "";
-            using (HttpClient client = new HttpClient())
-            {
-                var authorization = access_token;
-                client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", access_token);
-                var responseContent = client.GetAsync("https://api.spotify.com/v1/me/tracks?offset=" + i).Result.Content;
-                responseString += responseContent.ReadAsStringAsync().Result;
-            }
-            return JsonConvert.DeserializeObject<PagingTrack>(responseString, settings);
-        }
 
-        public PagingAlbum GetAlbums(string access_token, string artistID)
+        public PagingAlbum GetArtistsAlbums(string access_token, string artistID)
         {
             string responseString;
             using (HttpClient client = new HttpClient())
@@ -80,7 +68,7 @@ namespace SpotifyR
             return JsonConvert.DeserializeObject<PagingAlbum>(responseString, settings);
         }
 
-        public PagingAlbum GetAlbum(string access_token, string albumID)
+        public PagingAlbum GetAlbumById(string access_token, string albumID)
         {
             string responseString;
             using (HttpClient client = new HttpClient())
@@ -94,61 +82,39 @@ namespace SpotifyR
             return JsonConvert.DeserializeObject<PagingAlbum>(responseString, settings);
         }
 
-
-        public Boolean Datownik(String data, int ileMaxDni)
-        {
-            if (data.Length != 10) return false;
-            var numbers = data.Split('-').Select(Int32.Parse).ToList();
-            DateTime date = new DateTime(numbers[0], numbers[1], numbers[2]);
-            var now = DateTime.Now;
-            TimeSpan diff = now.Subtract(date);
-            TimeSpan diff0 = new TimeSpan(ileMaxDni, 0, 0, 0);
-            return diff < diff0;
-        }
-        public List<Track> ZrobJebanyAlgorytmRafałKurwa(TokensResponse tokens)
-        {
-            var artists = new HashSet<String>();
-            var newalbums = new HashSet<String>();
-            var newtracks = new HashSet<String>();
-            var poptracks = new HashSet<String>();
-            var albums = new HashSet<Album>();
-            var response = new List<Track>();
-
-            var albumPaging = new PagingAlbum();
-            for (int i = 0; i < 10; i++)
-            {
-                var tracksPaging = GetTracks(tokens.access_token, 20 * i);
-                try
-                {
-                    foreach (var k in tracksPaging.items) foreach (var j in k.track.artists) artists.Add(j.id);
-                    foreach (var artist in artists)
-                    {
-                        var albumsPaging = GetAlbums(tokens.access_token, artist);
-                        foreach (var a in albumsPaging.items) if (Datownik(a.release_date, 300)) newalbums.Add(a.id);
-                    }
-                    foreach (var a in newalbums)
-                    {
-                        var aPaging = GetAlbum(tokens.access_token, a);
-                        foreach (var g in aPaging.items) newtracks.Add(g.id);
-                    }
-                    foreach (var s in newtracks)
-                    {
-                        var track = GetTrack(tokens.access_token, s);
-                        if (track.popularity > 60) poptracks.Add(track.id);
-                    }
-                    foreach (var p in poptracks) response.Add(GetTrack(tokens.access_token, p));
-                }
-                catch (System.NullReferenceException) { }
-            }
-            return response;
-        }
-
         public IActionResult OnGet(String code)
         {
-            var tokens = GetTokens(code);
-            var NEW_RELEASES = new List<Track>();
-            NEW_RELEASES = ZrobJebanyAlgorytmRafałKurwa(tokens);
+            var access_token = GetTokens(code).access_token;
+            var NEW_RELEASES = NewReleases(access_token);
             return Page();
+        }
+
+        public List<Track> NewReleases(String access_token){
+            // get ALL followed artists
+            var followedArtists = GetFollowedArtists(access_token, null);
+            // get their newest (6tyg) albums
+            // get the 3 most popular songs
+            // shuffle the list
+            return null;
+        }
+
+        public List<Artist> GetFollowedArtists(String access_token, String next){
+            string responseString;
+            List<Artist> resultList = new List<Artist>();
+            using (HttpClient client = new HttpClient())
+            {
+                var authorization = access_token;
+                client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", access_token);
+                String adres = next==null ? "https://api.spotify.com/v1/me/following?type=artist&limit=50" : next + "&limit=50";
+                var responseContent = client.GetAsync(adres).Result.Content;
+                responseString = responseContent.ReadAsStringAsync().Result;
+            }
+            var responseContainer = JsonConvert.DeserializeObject<ArtistsContainer>(responseString, settings).artists;
+            resultList.AddRange(responseContainer.items);
+            if(responseContainer.next!=null){
+                resultList.AddRange(GetFollowedArtists(access_token, responseContainer.next));
+            }
+            return resultList;
         }
     }
 }

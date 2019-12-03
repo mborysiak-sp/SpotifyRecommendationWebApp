@@ -95,16 +95,18 @@ namespace SpotifyR
         }
 
 
-        public Boolean Datownik(String data, int ileMaxDni) {
-            if (data.Length!=10) return false;
+        public Boolean Datownik(String data, int ileMaxDni)
+        {
+            if (data.Length != 10) return false;
             var numbers = data.Split('-').Select(Int32.Parse).ToList();
             DateTime date = new DateTime(numbers[0], numbers[1], numbers[2]);
             var now = DateTime.Now;
             TimeSpan diff = now.Subtract(date);
             TimeSpan diff0 = new TimeSpan(ileMaxDni, 0, 0, 0);
-            return diff<diff0;
+            return diff < diff0;
         }
-        public List<Track> ZrobJebanyAlgorytmRafałKurwa(TokensResponse tokens){
+        public List<Track> ZrobJebanyAlgorytmRafałKurwa(TokensResponse tokens)
+        {
             var artists = new HashSet<String>();
             var newalbums = new HashSet<String>();
             var newtracks = new HashSet<String>();
@@ -113,24 +115,30 @@ namespace SpotifyR
             var response = new List<Track>();
 
             var albumPaging = new PagingAlbum();
-            for (int i = 0; i<10; i++) {
-                var tracksPaging = GetTracks(tokens.access_token, 20*i);
-                try{
-                foreach (var k in tracksPaging.items) foreach (var j in k.track.artists) artists.Add(j.id);
-                foreach (var artist in artists) {
-                    var albumsPaging = GetAlbums(tokens.access_token, artist);
-                    foreach (var a in albumsPaging.items) if (Datownik(a.release_date, 300)) newalbums.Add(a.id);
+            for (int i = 0; i < 10; i++)
+            {
+                var tracksPaging = GetTracks(tokens.access_token, 20 * i);
+                try
+                {
+                    foreach (var k in tracksPaging.items) foreach (var j in k.track.artists) artists.Add(j.id);
+                    foreach (var artist in artists)
+                    {
+                        var albumsPaging = GetAlbums(tokens.access_token, artist);
+                        foreach (var a in albumsPaging.items) if (Datownik(a.release_date, 300)) newalbums.Add(a.id);
+                    }
+                    foreach (var a in newalbums)
+                    {
+                        var aPaging = GetAlbum(tokens.access_token, a);
+                        foreach (var g in aPaging.items) newtracks.Add(g.id);
+                    }
+                    foreach (var s in newtracks)
+                    {
+                        var track = GetTrack(tokens.access_token, s);
+                        if (track.popularity > 60) poptracks.Add(track.id);
+                    }
+                    foreach (var p in poptracks) response.Add(GetTrack(tokens.access_token, p));
                 }
-                foreach (var a in newalbums) {
-                    var aPaging = GetAlbum(tokens.access_token, a);
-                    foreach (var g in aPaging.items) newtracks.Add(g.id);
-                }
-                foreach (var s in newtracks) {
-                    var track = GetTrack(tokens.access_token, s);
-                    if (track.popularity>60) poptracks.Add(track.id);
-                }
-                foreach (var p in poptracks) response.Add(GetTrack(tokens.access_token, p));
-                }catch (System.NullReferenceException) {}
+                catch (System.NullReferenceException) { }
             }
             return response;
         }
@@ -138,7 +146,7 @@ namespace SpotifyR
         public IActionResult OnGet(String code)
         {
             var tokens = GetTokens(code);
-           var NEW_RELEASES = new List<Track>();
+            var NEW_RELEASES = new List<Track>();
             NEW_RELEASES = ZrobJebanyAlgorytmRafałKurwa(tokens);
             return Page();
         }
